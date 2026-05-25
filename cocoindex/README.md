@@ -15,16 +15,19 @@ only re-embeds that note — the index never needs a full rebuild.
 
 ```bash
 pip install "cocoindex>=1.0.0" sentence-transformers lancedb
+export COCOINDEX_DB=~/.obsidian-grill/cocoindex-state   # CocoIndex incremental-state store
 cocoindex update cocoindex/index_vault.py        # build / incremental
 cocoindex update cocoindex/index_vault.py -L     # live: watch the vault
+python cocoindex/search_vault.py "why does attention pooling resist injection"  # query
 ```
+
+> Verified end-to-end on cocoindex 1.0.6 + lancedb 0.30.2 + sentence-transformers
+> 5.5.1: 238 notes → 1330 chunks indexed in ~14s (GPU); semantic search returns
+> the right notes (e.g. the attention-pooling query surfaces `concepts/Attention
+> Pooling Attack`).
 
 Vector store lands at `$OBSIDIAN_LANCEDB` (default `~/.obsidian-grill/lancedb`).
 Query it for true semantic search (upgrades `wiki-query` from grep to vectors).
-
-> The CocoIndex API is young (v1); the LanceDB connector here mirrors the
-> documented postgres pattern — verify symbol names against your installed
-> version.
 
 ## 2. `related_unlinked.py` — runs now (scikit-learn, no model/DB)
 

@@ -12,14 +12,16 @@ Requirements (not bundled — install before running):
     pip install "cocoindex>=1.0.0" sentence-transformers lancedb
 Vault path: $OBSIDIAN_VAULT_PATH or ~/.obsidian-wiki/config (default below).
 
-Run:
+Run (COCOINDEX_DB is CocoIndex's own incremental-state store, separate from the
+LanceDB vector target):
+    export COCOINDEX_DB=~/.obsidian-grill/cocoindex-state
     cocoindex update cocoindex/index_vault.py          # build / incremental update
     cocoindex update cocoindex/index_vault.py -L       # live mode (watch the vault)
+    python cocoindex/search_vault.py "your query"      # query the index
 
-API note: follows the CocoIndex v1 vector-embedding pattern (App + @coco.fn +
-walk_dir + RecursiveSplitter + SentenceTransformerEmbedder + a vector table
-target). The LanceDB connector mirrors the postgres pattern; verify exact symbol
-names against your installed cocoindex>=1.0.0.
+Verified on cocoindex 1.0.6: uses lancedb.connect_async + LanceAsyncConnection;
+the embedding vector column is declared via the dataclass Annotated[NDArray,
+EMBEDDER] (no declare_vector_index call — LanceDB tables don't expose one).
 """
 import os
 import pathlib
@@ -49,7 +51,7 @@ def _vault() -> pathlib.Path:
 
 
 LANCEDB_URI = os.environ.get("OBSIDIAN_LANCEDB", str(pathlib.Path.home() / ".obsidian-grill" / "lancedb"))
-LDB = coco.ContextKey[lancedb.Connection]("ldb")
+LDB = coco.ContextKey[lancedb.LanceAsyncConnection]("ldb")
 EMBEDDER = coco.ContextKey[SentenceTransformerEmbedder]("embedder")
 
 _splitter = RecursiveSplitter()
@@ -68,7 +70,7 @@ class NoteChunk:
 
 @coco.lifespan
 async def coco_lifespan(builder: coco.EnvironmentBuilder) -> AsyncIterator[None]:
-    conn = await lancedb.connect(LANCEDB_URI)
+    conn = await lancedb.connect_async(LANCEDB_URI)
     builder.provide(LDB, conn)
     builder.provide(EMBEDDER, SentenceTransformerEmbedder("all-MiniLM-L6-v2"))
     yield
@@ -92,7 +94,7 @@ async def process_chunk(chunk: Chunk, path: pathlib.PurePath, title: str,
 async def process_note(file: FileLike, table: lancedb.TableTarget[NoteChunk]) -> None:
     text = await file.read_text()
     title = file.file_path.path.stem
-    chunks = _splitter.split(text, chunk_size=1200, chunk_overlap=200, language="markdown")
+    chunks = _splitter.split(text, chunk_size=1200, chunk_overlap=200)
     id_gen = IdGenerator()
     await coco.map(process_chunk, chunks, file.file_path.path, title, id_gen, table)
 
@@ -104,7 +106,6 @@ async def app_main(sourcedir: pathlib.Path) -> None:
         table_name="vault_chunks",
         table_schema=await lancedb.TableSchema.from_class(NoteChunk, primary_key=["id"]),
     )
-    table.declare_vector_index(column="embedding")
 
     files = localfs.walk_dir(
         sourcedir,
