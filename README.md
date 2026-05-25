@@ -28,6 +28,9 @@ scripts/                      deterministic KB "unit tests"
   vault_stats.py  coverage %, index drift, staleness, tag taxonomy
   kb_report.py    runs both → meta/kb-report-<date>.md
 docs/                         ITERATION-LOOP.md, AGENTS.md
+cocoindex/                    incremental semantic index layer (CocoIndex) +
+                              related_unlinked.py (runs now, sklearn) — finds
+                              related-but-unlinked & near-duplicate notes (P2)
 .claude-plugin/               marketplace.json + plugin.json (install as a plugin)
 ```
 
