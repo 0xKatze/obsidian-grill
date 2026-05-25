@@ -1,0 +1,8 @@
+{
+  "name": "obsidian-grill",
+  "version": "0.1.0",
+  "category": "Knowledge Base / Workflow",
+  "description": "Framework to iteratively grill knowledge into an Obsidian vault and analyse/test it with agents. Bundles the grill-with-obsidian skill and four read-only analyzer agents.",
+  "homepage": "https://github.com/0xKatze/obsidian-grill",
+  "compat": ["claude-code", "claude-ai", "cursor", "codex-cli"]
+}

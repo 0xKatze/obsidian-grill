@@ -1,0 +1,23 @@
+{
+  "name": "obsidian-grill",
+  "owner": { "name": "0xKatze" },
+  "metadata": {
+    "description": "Turn an Obsidian vault into a living, tested knowledge base: grill knowledge in, test it with scripts, analyse it with agents, iterate.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "obsidian-grill",
+      "description": "grill-with-obsidian skill + four read-only analyzer agents (consistency, coverage-gap, freshness, perspective-panel).",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/grill-with-obsidian"],
+      "agents": [
+        "./agents/consistency-reviewer.md",
+        "./agents/coverage-gap-analyst.md",
+        "./agents/freshness-auditor.md",
+        "./agents/perspective-panel.md"
+      ]
+    }
+  ]
+}
