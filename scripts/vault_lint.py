@@ -44,9 +44,10 @@ def resolve_vault(arg):
 
 def link_target(raw):
     """Normalize a raw wikilink body to its note target (drop alias/heading)."""
-    t = raw.split("|", 1)[0]      # drop |alias
-    t = t.split("#", 1)[0]        # drop #heading
-    return t.strip()
+    t = raw.replace("\\|", "|")  # Obsidian escapes pipes as \| inside tables
+    t = t.split("|", 1)[0]         # drop |alias
+    t = t.split("#", 1)[0]         # drop #heading
+    return t.strip().rstrip("\\")
 
 
 def main():
